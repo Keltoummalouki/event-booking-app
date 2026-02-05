@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { SequelizeModule } from '@nestjs/sequelize';
+import { UsersModule } from './users/users.module';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { SequelizeModule } from '@nestjs/sequelize';
         synchronize: true, // Rappel: à désactiver en prod
       }),
     }),
+    UsersModule,
   ],
 })
 export class AppModule {}
