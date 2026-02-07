@@ -1,18 +1,33 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
+/**
+ * Middleware for Next.js App Router
+ * 
+ * Note: Since we use localStorage for JWT storage (client-side only),
+ * this middleware cannot check authentication status.
+ * 
+ * Client-side auth protection is handled in:
+ * - Login/Register pages: Auto-redirect if already authenticated
+ * - Dashboard pages: useEffect hook checks auth and redirects to /login
+ */
 export function middleware(request: NextRequest) {
-  const token = request.cookies.get('token'); // On passera aux cookies plus tard pour le middleware
-  const isAuthPage = request.nextUrl.pathname.startsWith('/login');
+  const { pathname } = request.nextUrl;
 
-  // Si pas de token et tente d'accéder au dashboard
-  if (!token && !isAuthPage && request.nextUrl.pathname.startsWith('/dashboard')) {
-    return NextResponse.redirect(new URL('/login', request.url));
-  }
-
+  // Allow all requests to pass through
+  // Auth checks are done client-side via useEffect hooks
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: ['/dashboard/:path*'],
+  matcher: [
+    /*
+     * Match all request paths except:
+     * - api (API routes)
+     * - _next/static (static files)
+     * - _next/image (image optimization files)
+     * - favicon.ico (favicon file)
+     */
+    '/((?!api|_next/static|_next/image|favicon.ico).*)',
+  ],
 };

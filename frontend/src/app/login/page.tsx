@@ -12,11 +12,12 @@ import FloatingInput from '@/components/auth/FloatingInput';
 import MagneticButton from '@/components/auth/MagneticButton';
 import Toast from '@/components/auth/Toast';
 import { loginSchema, LoginFormData } from '@/lib/validations/auth';
-import { login } from '@/services/auth.service';
+import { login, isAuthenticated } from '@/services/auth.service';
 
 export default function LoginPage() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
+  const [isRedirecting, setIsRedirecting] = useState(false);
   const [loadingProgress, setLoadingProgress] = useState(0);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error'; visible: boolean }>({
     message: '',
@@ -40,6 +41,19 @@ export default function LoginPage() {
   const email = watch('email');
   const password = watch('password');
 
+  // Auto-redirect if already authenticated
+  useEffect(() => {
+    if (isAuthenticated()) {
+      setIsRedirecting(true);
+      setToast({
+        message: 'Already logged in. Redirecting...',
+        type: 'success',
+        visible: true,
+      });
+      router.push('/dashboard/events');
+    }
+  }, [router]);
+
   // Simulate progress during loading
   useEffect(() => {
     if (isLoading) {
@@ -56,27 +70,41 @@ export default function LoginPage() {
   }, [isLoading]);
 
   const onSubmit = async (data: LoginFormData) => {
+    // Prevent multiple submissions
+    if (isLoading || isRedirecting) return;
+
     setIsLoading(true);
     setLoadingProgress(10);
 
     try {
       const response = await login(data.email, data.password);
-      setLoadingProgress(100);
+      setLoadingProgress(60);
 
-      // Store token and user data
+      // ATOMIC: Store token and user synchronously
+      // This prevents race condition where dashboard tries to fetch before token is available
       localStorage.setItem('token', response.access_token);
       localStorage.setItem('user', JSON.stringify(response.user));
 
+      // Force a small delay to ensure localStorage write is complete
+      await new Promise(resolve => setTimeout(resolve, 50));
+
+      setLoadingProgress(100);
+
+      // Show success toast
       setToast({
-        message: 'Welcome back! Redirecting...',
+        message: `Welcome back, ${response.user.email}!`,
         type: 'success',
         visible: true,
       });
 
-      // Redirect after short delay for visual feedback
+      // Set redirecting state to disable button
+      setIsRedirecting(true);
+
+      // Redirect after visual feedback
+      // The dashboard will now have the token available when it mounts
       setTimeout(() => {
-        router.push('/dashboard');
-      }, 500);
+        router.push('/dashboard/events');
+      }, 800);
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Login failed';
       setToast({
@@ -85,6 +113,7 @@ export default function LoginPage() {
         visible: true,
       });
       setIsLoading(false);
+      setLoadingProgress(0);
     }
   };
 
@@ -110,7 +139,13 @@ export default function LoginPage() {
           </div>
 
           {/* Form */}
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-2">
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              handleSubmit(onSubmit)(e);
+            }}
+            className="space-y-2"
+          >
             <FloatingInput
               label="Email address"
               type="email"
@@ -118,6 +153,7 @@ export default function LoginPage() {
               onChange={(e) => setValue('email', e.target.value)}
               error={errors.email?.message}
               autoComplete="email"
+              disabled={isLoading || isRedirecting}
             />
 
             <FloatingInput
@@ -127,6 +163,7 @@ export default function LoginPage() {
               onChange={(e) => setValue('password', e.target.value)}
               error={errors.password?.message}
               autoComplete="current-password"
+              disabled={isLoading || isRedirecting}
             />
 
             {/* Forgot Password Link */}
@@ -143,10 +180,11 @@ export default function LoginPage() {
             {/* Submit Button */}
             <MagneticButton
               type="submit"
-              isLoading={isLoading}
+              isLoading={isLoading || isRedirecting}
               loadingProgress={loadingProgress}
+              disabled={isLoading || isRedirecting}
             >
-              Sign in
+              {isRedirecting ? 'Redirecting...' : 'Sign in'}
               <ArrowRight size={20} />
             </MagneticButton>
           </form>

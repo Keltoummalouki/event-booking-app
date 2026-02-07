@@ -2,54 +2,33 @@ import { z } from 'zod';
 
 // Login Schema
 export const loginSchema = z.object({
-    email: z
-        .string()
-        .min(1, 'Email is required')
-        .email('Please enter a valid email address'),
-    password: z
-        .string()
-        .min(1, 'Password is required'),
+  email: z.string().email('Veuillez entrer un email valide'),
+  password: z.string().min(1, 'Le mot de passe est requis'),
 });
 
 export type LoginFormData = z.infer<typeof loginSchema>;
 
-// Register Step 1 Schema - Credentials
-export const registerStep1Schema = z
-    .object({
-        email: z
-            .string()
-            .min(1, 'Email is required')
-            .email('Please enter a valid email address'),
-        password: z
-            .string()
-            .min(8, 'Password must be at least 8 characters')
-            .regex(/[a-z]/, 'Password must contain at least one lowercase letter')
-            .regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
-            .regex(/[0-9]/, 'Password must contain at least one number'),
-        confirmPassword: z.string().min(1, 'Please confirm your password'),
-    })
-    .refine((data) => data.password === data.confirmPassword, {
-        message: 'Passwords do not match',
-        path: ['confirmPassword'],
-    });
+// Register Step 1: Credentials
+export const registerStep1Schema = z.object({
+  email: z.string().email('Email invalide'),
+  password: z
+    .string()
+    .min(8, 'Le mot de passe doit contenir au moins 8 caractères')
+    .regex(/[A-Z]/, 'Doit contenir une majuscule')
+    .regex(/[0-9]/, 'Doit contenir un chiffre'),
+  confirmPassword: z.string(),
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "Les mots de passe ne correspondent pas",
+  path: ["confirmPassword"],
+});
 
 export type RegisterStep1Data = z.infer<typeof registerStep1Schema>;
 
-// Role type for Zod 4
-const roleValues = ['ADMIN', 'PARTICIPANT'] as const;
-
-// Register Step 2 Schema - Profile
+// Register Step 2: Profile & Role
 export const registerStep2Schema = z.object({
-    firstName: z
-        .string()
-        .min(1, 'First name is required')
-        .min(2, 'First name must be at least 2 characters'),
-    lastName: z
-        .string()
-        .min(1, 'Last name is required')
-        .min(2, 'Last name must be at least 2 characters'),
-    role: z.enum(roleValues),
+  firstName: z.string().min(2, 'Prénom trop court'),
+  lastName: z.string().min(2, 'Nom trop court'),
+  role: z.enum(['ADMIN', 'PARTICIPANT']),
 });
 
 export type RegisterStep2Data = z.infer<typeof registerStep2Schema>;
-export type Role = (typeof roleValues)[number];
