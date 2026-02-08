@@ -68,7 +68,7 @@ export default function PublicHeader() {
                         E
                     </div>
                     <span className="font-serif text-xl font-bold text-navy dark:text-white hidden sm:block">
-                        EventHub
+                        Event Booking App
                     </span>
                 </Link>
 
