@@ -1,5 +1,6 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, ManyToOne } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, ManyToOne, OneToMany } from 'typeorm';
 import { User } from '../../users/entities/user.entity';
+import { Booking } from '../../bookings/entities/booking.entity';
 
 export enum EventStatus {
   DRAFT = 'DRAFT',
@@ -36,4 +37,7 @@ export class Event {
   // Relation avec l'Admin qui crée l'événement
   @ManyToOne(() => User, { eager: false })
   organizer: User;
+
+  @OneToMany(() => Booking, (booking) => booking.event)
+  bookings: Booking[];
 }
