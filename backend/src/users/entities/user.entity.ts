@@ -1,4 +1,5 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, OneToMany } from 'typeorm';
+import { Booking } from '../../bookings/entities/booking.entity';
 
 export enum UserRole {
   ADMIN = 'ADMIN',
@@ -21,4 +22,7 @@ export class User {
 
   @CreateDateColumn()
   createdAt: Date;
+
+  @OneToMany(() => Booking, (booking) => booking.participant)
+  bookings: Booking[];
 }
