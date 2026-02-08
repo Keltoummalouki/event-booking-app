@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { Event, EventStatus } from './entities/event.entity';
 import { CreateEventDto } from './dto/create-event.dto';
 import { User } from '../users/entities/user.entity';
+import { NotFoundException } from '@nestjs/common';
 
 @Injectable()
 export class EventsService {
@@ -36,5 +37,16 @@ export class EventsService {
       query.where('event.status = :status', { status });
     }
     return await query.getMany();
+  }
+
+  async publish(id: string): Promise<Event> {
+    const event = await this.eventsRepository.findOne({ where: { id } });
+    
+    if (!event) {
+      throw new NotFoundException(`Événement avec l'ID ${id} introuvable`);
+    }
+
+    event.status = EventStatus.PUBLISHED;
+    return await this.eventsRepository.save(event);
   }
 }

@@ -1,9 +1,11 @@
 'use client';
 
-import { motion } from 'framer-motion';
+import { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Calendar, MapPin, Users, Clock } from 'lucide-react';
 import { Event } from '@/types/event.types';
 import StatusBadge from '@/components/ui/StatusBadge';
+import { api } from '@/lib/api-client';
 
 interface EventCardProps {
     event: Event;
@@ -11,6 +13,9 @@ interface EventCardProps {
 }
 
 export default function EventCard({ event, index }: EventCardProps) {
+    const [isPublishing, setIsPublishing] = useState(false);
+    const [isPublished, setIsPublished] = useState(false);
+
     const eventDate = new Date(event.date);
     const isUpcoming = eventDate > new Date();
 
@@ -19,6 +24,20 @@ export default function EventCard({ event, index }: EventCardProps) {
 
     // TODO: Integrate Booking API - Currently using mock data
     const fillPercentage = 65;
+
+    // Publish event handler
+    const handlePublish = async () => {
+        if (isPublishing || isPublished) return;
+
+        setIsPublishing(true);
+        try {
+            await api.patch(`/events/${event.id}/publish`);
+            setIsPublished(true);
+        } catch (error) {
+            console.error('Failed to publish event:', error);
+            setIsPublishing(false);
+        }
+    };
 
     return (
         <motion.article
@@ -123,6 +142,59 @@ export default function EventCard({ event, index }: EventCardProps) {
                             </p>
                         </div>
                     )}
+
+                    {/* Asymmetric Publish Button - Bottom Right Corner with Offset */}
+                    <AnimatePresence>
+                        {event.status === 'DRAFT' && !isPublished && (
+                            <motion.div
+                                initial={{ opacity: 0, y: 8 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, scale: 0.95 }}
+                                transition={{ duration: 0.3 }}
+                                className="absolute bottom-4 right-4 translate-x-1 translate-y-1"
+                            >
+                                <button
+                                    onClick={handlePublish}
+                                    disabled={isPublishing}
+                                    className={`
+                                        relative px-4 py-2
+                                        bg-transparent
+                                        text-[10px] font-medium uppercase tracking-widest
+                                        text-coral
+                                        transition-all duration-300
+                                        group/publish
+                                        ${isPublishing ? 'opacity-50 cursor-wait' : 'hover:text-coral/80'}
+                                    `}
+                                >
+                                    {/* Animated bottom border */}
+                                    <span
+                                        className="absolute bottom-0 left-0 right-0 h-[1px] bg-coral/40 origin-left transition-transform duration-300 group-hover/publish:scale-x-100"
+                                        style={{ transform: 'scaleX(0.3)' }}
+                                    />
+                                    <motion.span
+                                        className="absolute bottom-0 left-0 right-0 h-[1px] bg-coral origin-left"
+                                        initial={{ scaleX: 0 }}
+                                        whileHover={{ scaleX: 1 }}
+                                        transition={{ duration: 0.3 }}
+                                    />
+
+                                    {/* Button text or loader */}
+                                    {isPublishing ? (
+                                        <span className="flex items-center gap-2">
+                                            <motion.span
+                                                animate={{ rotate: 360 }}
+                                                transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+                                                className="inline-block w-3 h-3 border border-coral border-t-transparent rounded-full"
+                                            />
+                                            <span>Publishing...</span>
+                                        </span>
+                                    ) : (
+                                        'PUBLISH EVENT'
+                                    )}
+                                </button>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
                 </div>
 
                 {/* Hover effect - subtle gradient overlay */}

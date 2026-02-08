@@ -138,7 +138,7 @@ export default function DashboardPage() {
                 <EventGrid>
                     {isLoading ? (
                         <EventSkeleton count={6} />
-                    ) : events.length === 0 ? (
+                    ) : !events || events.length === 0 ? (
                         <EmptyState onCreateEvent={handleOpenModal} />
                     ) : (
                         events.map((event, index) => (
@@ -148,7 +148,7 @@ export default function DashboardPage() {
                 </EventGrid>
 
                 {/* Stats Footer */}
-                {!isLoading && events.length > 0 && (
+                {!isLoading && events?.length > 0 && (
                     <motion.footer
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
