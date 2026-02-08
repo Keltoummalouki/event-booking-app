@@ -49,4 +49,11 @@ export class EventsService {
     event.status = EventStatus.PUBLISHED;
     return await this.eventsRepository.save(event);
   }
+
+  async findAllPublished(): Promise<Event[]> {
+    return await this.eventsRepository.find({
+      where: { status: EventStatus.PUBLISHED },
+      order: { date: 'ASC' },
+    });
+  }
 }

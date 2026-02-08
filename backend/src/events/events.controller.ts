@@ -29,4 +29,9 @@ export class EventsController {
   publish(@Param('id') id: string) {
     return this.eventsService.publish(id);
   }
+
+  @Get('public') // Route accessible sans connexion
+  findAllPublic() {
+    return this.eventsService.findAllPublished();
+  }
 }

@@ -2,7 +2,8 @@
 
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Calendar, MapPin, Users, Clock } from 'lucide-react';
+import { Calendar, MapPin, Users, Clock, ArrowRight } from 'lucide-react';
+import Link from 'next/link';
 import { Event } from '@/types/event.types';
 import StatusBadge from '@/components/ui/StatusBadge';
 import { api } from '@/lib/api-client';
@@ -10,9 +11,10 @@ import { api } from '@/lib/api-client';
 interface EventCardProps {
     event: Event;
     index: number;
+    isPublicView?: boolean;
 }
 
-export default function EventCard({ event, index }: EventCardProps) {
+export default function EventCard({ event, index, isPublicView = false }: EventCardProps) {
     const [isPublishing, setIsPublishing] = useState(false);
     const [isPublished, setIsPublished] = useState(false);
 
@@ -80,10 +82,12 @@ export default function EventCard({ event, index }: EventCardProps) {
                     </div>
                 </div>
 
-                {/* Status badge - overlapping image edge */}
-                <div className="absolute top-44 right-6 z-10">
-                    <StatusBadge status={event.status} variant="prominent" />
-                </div>
+                {/* Status badge - overlapping image edge (Admin only) */}
+                {!isPublicView && (
+                    <div className="absolute top-44 right-6 z-10">
+                        <StatusBadge status={event.status} variant="prominent" />
+                    </div>
+                )}
 
                 {/* Content container with asymmetric padding */}
                 <div className="p-6 pt-8">
@@ -143,20 +147,21 @@ export default function EventCard({ event, index }: EventCardProps) {
                         </div>
                     )}
 
-                    {/* Asymmetric Publish Button - Bottom Right Corner with Offset */}
-                    <AnimatePresence>
-                        {event.status === 'DRAFT' && !isPublished && (
-                            <motion.div
-                                initial={{ opacity: 0, y: 8 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                exit={{ opacity: 0, scale: 0.95 }}
-                                transition={{ duration: 0.3 }}
-                                className="absolute bottom-4 right-4 translate-x-1 translate-y-1"
-                            >
-                                <button
-                                    onClick={handlePublish}
-                                    disabled={isPublishing}
-                                    className={`
+                    {/* Asymmetric Publish Button - Admin Only */}
+                    {!isPublicView && (
+                        <AnimatePresence>
+                            {event.status === 'DRAFT' && !isPublished && (
+                                <motion.div
+                                    initial={{ opacity: 0, y: 8 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    exit={{ opacity: 0, scale: 0.95 }}
+                                    transition={{ duration: 0.3 }}
+                                    className="absolute bottom-4 right-4 translate-x-1 translate-y-1"
+                                >
+                                    <button
+                                        onClick={handlePublish}
+                                        disabled={isPublishing}
+                                        className={`
                                         relative px-4 py-2
                                         bg-transparent
                                         text-[10px] font-medium uppercase tracking-widest
@@ -165,36 +170,56 @@ export default function EventCard({ event, index }: EventCardProps) {
                                         group/publish
                                         ${isPublishing ? 'opacity-50 cursor-wait' : 'hover:text-coral/80'}
                                     `}
-                                >
-                                    {/* Animated bottom border */}
-                                    <span
-                                        className="absolute bottom-0 left-0 right-0 h-[1px] bg-coral/40 origin-left transition-transform duration-300 group-hover/publish:scale-x-100"
-                                        style={{ transform: 'scaleX(0.3)' }}
-                                    />
-                                    <motion.span
-                                        className="absolute bottom-0 left-0 right-0 h-[1px] bg-coral origin-left"
-                                        initial={{ scaleX: 0 }}
-                                        whileHover={{ scaleX: 1 }}
-                                        transition={{ duration: 0.3 }}
-                                    />
+                                    >
+                                        {/* Animated bottom border */}
+                                        <span
+                                            className="absolute bottom-0 left-0 right-0 h-[1px] bg-coral/40 origin-left transition-transform duration-300 group-hover/publish:scale-x-100"
+                                            style={{ transform: 'scaleX(0.3)' }}
+                                        />
+                                        <motion.span
+                                            className="absolute bottom-0 left-0 right-0 h-[1px] bg-coral origin-left"
+                                            initial={{ scaleX: 0 }}
+                                            whileHover={{ scaleX: 1 }}
+                                            transition={{ duration: 0.3 }}
+                                        />
 
-                                    {/* Button text or loader */}
-                                    {isPublishing ? (
-                                        <span className="flex items-center gap-2">
-                                            <motion.span
-                                                animate={{ rotate: 360 }}
-                                                transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
-                                                className="inline-block w-3 h-3 border border-coral border-t-transparent rounded-full"
-                                            />
-                                            <span>Publishing...</span>
-                                        </span>
-                                    ) : (
-                                        'PUBLISH EVENT'
-                                    )}
-                                </button>
+                                        {/* Button text or loader */}
+                                        {isPublishing ? (
+                                            <span className="flex items-center gap-2">
+                                                <motion.span
+                                                    animate={{ rotate: 360 }}
+                                                    transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+                                                    className="inline-block w-3 h-3 border border-coral border-t-transparent rounded-full"
+                                                />
+                                                <span>Publishing...</span>
+                                            </span>
+                                        ) : (
+                                            'PUBLISH EVENT'
+                                        )}
+                                    </button>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
+                    )}
+
+                    {/* Magnetic View Details Link - Public View Only */}
+                    {isPublicView && (
+                        <Link
+                            href={`/events/${event.id}`}
+                            className="group/link mt-4 flex items-center justify-between pt-4 border-t border-slate/10"
+                        >
+                            <span className="text-sm font-medium text-navy group-hover/link:text-coral transition-colors">
+                                View Details
+                            </span>
+                            <motion.div
+                                className="flex items-center gap-1 text-coral"
+                                whileHover={{ x: 4 }}
+                                transition={{ type: 'spring', stiffness: 400, damping: 20 }}
+                            >
+                                <ArrowRight size={16} />
                             </motion.div>
-                        )}
-                    </AnimatePresence>
+                        </Link>
+                    )}
                 </div>
 
                 {/* Hover effect - subtle gradient overlay */}
