@@ -1,14 +1,26 @@
-import { Controller, Post, Body, UseGuards, Request, Get, Query, Param, Patch, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  UseGuards,
+  Request,
+  Get,
+  Query,
+  Param,
+  Patch,
+  Delete,
+} from '@nestjs/common';
 import { EventsService } from './events.service';
 import { CreateEventDto } from './dto/create-event.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { UserRole } from '../users/entities/user.entity';
+import { OptionalJwtAuthGuard } from '../auth/guards/optional-jwt-auth.guard';
 
 @Controller('events')
 export class EventsController {
-  constructor(private readonly eventsService: EventsService) { }
+  constructor(private readonly eventsService: EventsService) {}
 
   @Post()
   @UseGuards(JwtAuthGuard, RolesGuard)
@@ -18,8 +30,10 @@ export class EventsController {
   }
 
   @Get('public')
-  findAllPublic() {
-    return this.eventsService.findAllPublished();
+  @UseGuards(OptionalJwtAuthGuard)
+  findAllPublic(@Request() req) {
+    const userId = req.user?.userId || req.user?.id;
+    return this.eventsService.findAllPublished(userId);
   }
 
   @Get()
@@ -35,7 +49,10 @@ export class EventsController {
   @Patch(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN)
-  update(@Param('id') id: string, @Body() updateEventDto: Partial<CreateEventDto>) {
+  update(
+    @Param('id') id: string,
+    @Body() updateEventDto: Partial<CreateEventDto>,
+  ) {
     return this.eventsService.update(id, updateEventDto);
   }
 
@@ -53,4 +70,3 @@ export class EventsController {
     return this.eventsService.remove(id);
   }
 }
-
