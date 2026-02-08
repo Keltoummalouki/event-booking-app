@@ -1,22 +1,37 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Calendar, MapPin, Users, Clock, ArrowRight } from 'lucide-react';
+import { MapPin, Users, Clock, ArrowRight, Hourglass } from 'lucide-react';
 import Link from 'next/link';
 import { Event } from '@/types/event.types';
 import StatusBadge from '@/components/ui/StatusBadge';
 import { api } from '@/lib/api-client';
+import Swal from 'sweetalert2';
 
 interface EventCardProps {
     event: Event;
     index: number;
     isPublicView?: boolean;
+    onBookingSuccess?: (message: string) => void;
 }
 
-export default function EventCard({ event, index, isPublicView = false }: EventCardProps) {
+type BookingStatus = 'idle' | 'loading' | 'success' | 'full';
+
+interface StoredUser {
+    role?: string;
+}
+
+export default function EventCard({
+    event,
+    index,
+    isPublicView = false,
+    onBookingSuccess
+}: EventCardProps) {
     const [isPublishing, setIsPublishing] = useState(false);
     const [isPublished, setIsPublished] = useState(false);
+    const [bookingStatus, setBookingStatus] = useState<BookingStatus>('idle');
+    const [isParticipant, setIsParticipant] = useState(false);
 
     const eventDate = new Date(event.date);
     const isUpcoming = eventDate > new Date();
@@ -26,6 +41,27 @@ export default function EventCard({ event, index, isPublicView = false }: EventC
 
     // TODO: Integrate Booking API - Currently using mock data
     const fillPercentage = 65;
+    const isFull = fillPercentage >= 100;
+
+    // Check user role on mount
+    useEffect(() => {
+        if (typeof window !== 'undefined') {
+            try {
+                const userStr = localStorage.getItem('user');
+                if (userStr) {
+                    const user: StoredUser = JSON.parse(userStr);
+                    setIsParticipant(user.role === 'PARTICIPANT');
+                }
+            } catch {
+                setIsParticipant(false);
+            }
+        }
+
+        // Set full status if capacity reached
+        if (isFull) {
+            setBookingStatus('full');
+        }
+    }, [isFull]);
 
     // Publish event handler
     const handlePublish = async () => {
@@ -41,6 +77,121 @@ export default function EventCard({ event, index, isPublicView = false }: EventC
         }
     };
 
+    // Booking handler
+    const handleBooking = async () => {
+        if (bookingStatus !== 'idle') return;
+
+        setBookingStatus('loading');
+        try {
+            await api.post('/bookings', { eventId: event.id });
+            setBookingStatus('success');
+            onBookingSuccess?.('Booking request sent! Awaiting confirmation.');
+        } catch (error) {
+            console.error('Failed to create booking:', error);
+            const message = error instanceof Error ? error.message : 'Failed to book. Please try again.';
+
+            Swal.fire({
+                title: 'Error!',
+                text: message,
+                icon: 'error',
+                confirmButtonText: 'OK',
+                confirmButtonColor: '#f97316', // coral
+                background: '#1e293b', // navy
+                color: '#fff'
+            });
+
+            setBookingStatus('idle');
+        }
+    };
+
+    // Booking button content based on status
+    const renderBookingButton = () => {
+        // Only show for public view + participant users
+        if (!isPublicView || !isParticipant) return null;
+
+        return (
+            <AnimatePresence mode="wait">
+                {bookingStatus === 'full' ? (
+                    // Sold Out State
+                    <motion.div
+                        key="full"
+                        initial={{ opacity: 0, y: 8 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0 }}
+                        className="absolute bottom-4 right-4 translate-x-1"
+                    >
+                        <span className="px-4 py-2 text-[10px] font-medium uppercase tracking-widest text-foreground-muted/50 cursor-not-allowed">
+                            EVENT FULL
+                        </span>
+                    </motion.div>
+                ) : bookingStatus === 'success' ? (
+                    // Success State - Badge with hourglass
+                    <motion.div
+                        key="success"
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ type: 'spring', stiffness: 400, damping: 25 }}
+                        className="absolute bottom-4 right-4 translate-x-1"
+                    >
+                        <div className="flex items-center gap-2 px-4 py-2 bg-coral/10 dark:bg-coral/20 ring-1 ring-coral/30 rounded-lg">
+                            <Hourglass size={12} className="text-coral" />
+                            <span className="text-[10px] font-medium uppercase tracking-widest text-coral">
+                                REQUEST SENT
+                            </span>
+                        </div>
+                    </motion.div>
+                ) : (
+                    // Idle / Loading State - Booking Button
+                    <motion.div
+                        key="booking"
+                        initial={{ opacity: 0, y: 8 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, scale: 0.95 }}
+                        transition={{ duration: 0.3 }}
+                        className="absolute bottom-4 right-4 translate-x-1"
+                    >
+                        <motion.button
+                            onClick={handleBooking}
+                            disabled={bookingStatus === 'loading'}
+                            whileHover={bookingStatus !== 'loading' ? {
+                                y: -2,
+                                boxShadow: '0 4px 20px rgba(249, 115, 22, 0.3)'
+                            } : {}}
+                            whileTap={bookingStatus !== 'loading' ? { scale: 0.98 } : {}}
+                            className={`
+                                relative px-4 py-2
+                                bg-transparent
+                                ring-1 ring-coral/40
+                                rounded-lg
+                                text-[10px] font-medium uppercase tracking-widest
+                                text-coral
+                                transition-all duration-300
+                                ${bookingStatus === 'loading'
+                                    ? 'opacity-70 cursor-wait'
+                                    : 'hover:ring-coral hover:shadow-lg dark:hover:shadow-[0_0_20px_rgba(249,115,22,0.3)]'
+                                }
+                            `}
+                        >
+                            {bookingStatus === 'loading' ? (
+                                <span className="flex items-center gap-2">
+                                    <motion.span
+                                        animate={{ rotate: 360 }}
+                                        transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+                                        className="inline-block w-3 h-3 border border-coral border-t-transparent rounded-full"
+                                    />
+                                    <span>BOOKING...</span>
+                                </span>
+                            ) : (
+                                'BOOK NOW'
+                            )}
+                        </motion.button>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+        );
+    };
+
     return (
         <motion.article
             initial={{ opacity: 0, y: 20 }}
@@ -54,8 +205,8 @@ export default function EventCard({ event, index, isPublicView = false }: EventC
             }}
             className="group relative"
         >
-            {/* Card with layered shadows */}
-            <div className="relative bg-white overflow-hidden shadow-layered hover:shadow-layered-hover transition-all duration-300 clip-corner-br">
+            {/* Card with layered shadows - Theme aware */}
+            <div className="relative overflow-hidden shadow-layered hover:shadow-layered-hover transition-all duration-300 clip-corner-br bg-white dark:bg-card-bg ring-1 ring-slate/5 dark:ring-white/5">
                 {/* Cover Image / Gradient Header with angled corner */}
                 <div className="relative h-48 clip-angle-top overflow-hidden">
                     {event.coverImageUrl ? (
@@ -92,17 +243,17 @@ export default function EventCard({ event, index, isPublicView = false }: EventC
                 {/* Content container with asymmetric padding */}
                 <div className="p-6 pt-8">
                     {/* Title - Serif font for typographic strength */}
-                    <h3 className="font-serif text-xl font-semibold text-navy mb-2 tracking-tight-custom line-clamp-1">
+                    <h3 className="font-serif text-xl font-semibold text-foreground mb-2 tracking-tight-custom line-clamp-1">
                         {event.title}
                     </h3>
 
                     {/* Description */}
-                    <p className="text-slate text-sm leading-relaxed mb-4 line-clamp-2">
+                    <p className="text-foreground-muted text-sm leading-relaxed mb-4 line-clamp-2">
                         {event.description}
                     </p>
 
                     {/* Event details - compact layout */}
-                    <div className="flex flex-wrap gap-x-4 gap-y-2 mb-4 text-sm text-slate">
+                    <div className="flex flex-wrap gap-x-4 gap-y-2 mb-4 text-sm text-foreground-muted">
                         <div className="flex items-center gap-1.5">
                             <MapPin className="w-3.5 h-3.5 text-coral" />
                             <span className="truncate max-w-[120px]">{event.location}</span>
@@ -124,25 +275,27 @@ export default function EventCard({ event, index, isPublicView = false }: EventC
                     {/* Filling rate progress bar */}
                     <div className="mb-4">
                         <div className="flex items-center justify-between text-xs mb-1.5">
-                            <span className="text-slate">Capacity</span>
-                            <span className="text-coral font-medium">{fillPercentage}% filled</span>
+                            <span className="text-foreground-muted">Capacity</span>
+                            <span className={`font-medium ${isFull ? 'text-error' : 'text-coral'}`}>
+                                {isFull ? 'Sold Out' : `${fillPercentage}% filled`}
+                            </span>
                         </div>
                         <div className="h-1.5 progress-bar-base">
                             <motion.div
                                 initial={{ width: 0 }}
-                                whileInView={{ width: `${fillPercentage}%` }}
+                                whileInView={{ width: `${Math.min(fillPercentage, 100)}%` }}
                                 viewport={{ once: true }}
                                 transition={{ duration: 0.8, delay: 0.3, ease: 'easeOut' }}
-                                className="h-full progress-bar-fill"
+                                className={`h-full ${isFull ? 'bg-error' : 'progress-bar-fill'}`}
                             />
                         </div>
                     </div>
 
                     {/* Organizer info */}
                     {event.organizer && (
-                        <div className="pt-3 border-t border-slate/10">
-                            <p className="text-xs text-slate">
-                                By <span className="font-medium text-navy">{event.organizer.firstName} {event.organizer.lastName}</span>
+                        <div className="pt-3 border-t border-slate/10 dark:border-white/5">
+                            <p className="text-xs text-foreground-muted">
+                                By <span className="font-medium text-foreground">{event.organizer.firstName} {event.organizer.lastName}</span>
                             </p>
                         </div>
                     )}
@@ -202,13 +355,13 @@ export default function EventCard({ event, index, isPublicView = false }: EventC
                         </AnimatePresence>
                     )}
 
-                    {/* Magnetic View Details Link - Public View Only */}
-                    {isPublicView && (
+                    {/* Magnetic View Details Link - Public View (non-participant or fallback) */}
+                    {isPublicView && !isParticipant && (
                         <Link
                             href={`/events/${event.id}`}
-                            className="group/link mt-4 flex items-center justify-between pt-4 border-t border-slate/10"
+                            className="group/link mt-4 flex items-center justify-between pt-4 border-t border-slate/10 dark:border-white/5"
                         >
-                            <span className="text-sm font-medium text-navy group-hover/link:text-coral transition-colors">
+                            <span className="text-sm font-medium text-foreground group-hover/link:text-coral transition-colors">
                                 View Details
                             </span>
                             <motion.div
@@ -220,6 +373,9 @@ export default function EventCard({ event, index, isPublicView = false }: EventC
                             </motion.div>
                         </Link>
                     )}
+
+                    {/* Booking Button - Public View + Participant Only */}
+                    {renderBookingButton()}
                 </div>
 
                 {/* Hover effect - subtle gradient overlay */}

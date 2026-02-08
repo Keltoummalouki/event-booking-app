@@ -66,13 +66,13 @@ export default function CreateEventModal({ isOpen, onClose, onSubmit }: CreateEv
         <AnimatePresence>
             {isOpen && (
                 <>
-                    {/* Backdrop */}
+                    {/* Backdrop - Enhanced blur */}
                     <motion.div
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         onClick={handleClose}
-                        className="fixed inset-0 bg-navy/60 backdrop-blur-sm z-40"
+                        className="fixed inset-0 z-40 modal-backdrop"
                     />
 
                     {/* Modal */}
@@ -83,7 +83,7 @@ export default function CreateEventModal({ isOpen, onClose, onSubmit }: CreateEv
                         transition={{ type: 'spring', duration: 0.5 }}
                         className="fixed inset-0 z-50 flex items-center justify-center p-4"
                     >
-                        <div className="bg-cream w-full max-w-2xl rounded-lg shadow-2xl overflow-hidden clip-corner-tr">
+                        <div className="w-full max-w-2xl overflow-hidden clip-corner-tr shadow-2xl bg-cream dark:bg-navy-dark ring-1 ring-slate/10 dark:ring-white/10 rounded-lg">
                             {/* Header */}
                             <div className="relative bg-gradient-coral p-6 text-white">
                                 <h2 className="font-serif text-3xl font-semibold tracking-tight-custom">
@@ -120,11 +120,18 @@ export default function CreateEventModal({ isOpen, onClose, onSubmit }: CreateEv
 
                                 {/* Description */}
                                 <div className="relative">
-                                    <label className="block text-sm font-medium text-navy mb-2">Description</label>
+                                    <label className="block text-sm font-medium text-foreground opacity-90 mb-2">
+                                        Description
+                                    </label>
                                     <textarea
                                         {...register('description')}
                                         rows={4}
-                                        className="w-full p-4 border border-slate/20 rounded-lg focus:border-coral focus:ring-2 focus:ring-coral/20 outline-none transition-all resize-none"
+                                        className="w-full p-4 rounded-lg outline-none transition-all resize-none
+                                            bg-white dark:bg-navy/50
+                                            text-foreground
+                                            ring-1 ring-slate/20 dark:ring-white/10
+                                            focus:ring-2 focus:ring-coral/50
+                                            placeholder:text-slate/50 dark:placeholder:text-slate-light/40"
                                         placeholder="Describe your event..."
                                     />
                                     {errors.description && (
@@ -182,10 +189,16 @@ export default function CreateEventModal({ isOpen, onClose, onSubmit }: CreateEv
                                     </div>
 
                                     <div>
-                                        <label className="block text-sm font-medium text-navy mb-2">Status</label>
+                                        <label className="block text-sm font-medium text-foreground opacity-90 mb-2">
+                                            Status
+                                        </label>
                                         <select
                                             {...register('status')}
-                                            className="w-full p-4 border border-slate/20 rounded-lg focus:border-coral focus:ring-2 focus:ring-coral/20 outline-none transition-all bg-white"
+                                            className="w-full p-4 rounded-lg outline-none transition-all
+                                                bg-white dark:bg-navy/50
+                                                text-foreground
+                                                ring-1 ring-slate/20 dark:ring-white/10
+                                                focus:ring-2 focus:ring-coral/50"
                                         >
                                             <option value="DRAFT">Draft</option>
                                             <option value="PUBLISHED">Published</option>
@@ -200,14 +213,17 @@ export default function CreateEventModal({ isOpen, onClose, onSubmit }: CreateEv
                                         type="button"
                                         onClick={handleClose}
                                         disabled={isSubmitting}
-                                        className="flex-1 px-6 py-3 border border-slate/20 text-navy rounded-lg hover:bg-slate/5 transition-colors disabled:opacity-50 font-medium"
+                                        className="flex-1 px-6 py-3 rounded-lg font-medium transition-colors disabled:opacity-50
+                                            text-foreground
+                                            ring-1 ring-slate/20 dark:ring-white/10
+                                            hover:bg-slate/5 dark:hover:bg-white/5"
                                     >
                                         Cancel
                                     </button>
                                     <button
                                         type="submit"
                                         disabled={isSubmitting}
-                                        className="flex-1 px-6 py-3 bg-gradient-coral text-white rounded-lg hover:shadow-lg transition-all disabled:opacity-50 font-medium btn-asymmetric"
+                                        className="flex-1 px-6 py-3 bg-gradient-coral text-white rounded-lg font-medium btn-asymmetric transition-all disabled:opacity-50 hover:shadow-lg dark:hover:glow-coral"
                                     >
                                         {isSubmitting ? 'Creating...' : 'Create Event'}
                                     </button>

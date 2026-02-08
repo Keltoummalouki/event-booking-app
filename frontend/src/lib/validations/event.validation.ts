@@ -48,7 +48,7 @@ export const eventFormSchema = z.object({
     
     status: z.enum(eventStatusValues, {
         errorMap: () => ({ message: 'Status must be either DRAFT or PUBLISHED' }),
-    }),
+    }).optional().default('DRAFT'),
 });
 
 // Type inference for form data

@@ -12,7 +12,7 @@ import FloatingInput from '@/components/auth/FloatingInput';
 import MagneticButton from '@/components/auth/MagneticButton';
 import Toast from '@/components/auth/Toast';
 import { loginSchema, LoginFormData } from '@/lib/validations/auth';
-import { login, isAuthenticated } from '@/services/auth.service';
+import { login, isAuthenticated, getCurrentUser } from '@/services/auth.service';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -50,7 +50,13 @@ export default function LoginPage() {
         type: 'success',
         visible: true,
       });
-      router.push('/dashboard/events');
+
+      const user = getCurrentUser();
+      if (user?.role === 'ADMIN') {
+        router.push('/dashboard/events');
+      } else {
+        router.push('/events');
+      }
     }
   }, [router]);
 
@@ -103,7 +109,11 @@ export default function LoginPage() {
       // Redirect after visual feedback
       // The dashboard will now have the token available when it mounts
       setTimeout(() => {
-        router.push('/dashboard/events');
+        if (response.user.role === 'ADMIN') {
+          router.push('/dashboard/events');
+        } else {
+          router.push('/events');
+        }
       }, 800);
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Login failed';

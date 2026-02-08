@@ -1,4 +1,4 @@
-import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
+import { Injectable, BadRequestException, NotFoundException, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Booking } from './entities/booking.entity';
@@ -9,18 +9,24 @@ import { UpdateBookingDto } from './dto/update-booking.dto';
 
 @Injectable()
 export class BookingsService {
+  private readonly logger = new Logger(BookingsService.name);
+
   constructor(
     @InjectRepository(Booking)
     private bookingsRepository: Repository<Booking>,
     @InjectRepository(EventEntity)
-    private eventsRepository: Repository<EventEntity>, 
-  ) {}
+    private eventsRepository: Repository<EventEntity>,
+  ) { }
 
-  async create(eventId: string, user: User) {
+  async create(eventId: string, jwtUser: any) {
+    // JWT returns { userId, email, role } but TypeORM needs { id } for relations
+    const participantId = jwtUser?.userId || jwtUser?.id;
+    this.logger.log(`Creating booking for event ${eventId} by user ${participantId}`);
+
     // 1. Récupération avec relations explicites
-    const event = await this.eventsRepository.findOne({ 
+    const event = await this.eventsRepository.findOne({
       where: { id: eventId },
-      relations: ['bookings'] 
+      relations: ['bookings']
     });
 
     if (!event || event.status !== 'PUBLISHED') {
@@ -33,26 +39,28 @@ export class BookingsService {
       throw new BadRequestException("L'événement est complet.");
     }
 
-    // 3. Vérification de doublon avec syntaxe compatible TypeScript
+    // 3. Vérification de doublon
     const existingBooking = await this.bookingsRepository.findOne({
-      where: { 
-        event: { id: eventId }, 
-        participant: { id: user.id } 
-      } as any // Le cast 'as any' ici règle le conflit de type FindOptionsWhere complexe
+      where: {
+        event: { id: eventId },
+        participant: { id: participantId }
+      } as any
     });
 
     if (existingBooking) {
       throw new BadRequestException("Vous avez déjà réservé pour cet événement.");
     }
 
-    // 4. Création avec typage DeepPartial strict
+    // 4. Création avec référence d'ID seulement (pas l'entité complète)
     const booking = this.bookingsRepository.create({
       status: 'PENDING',
+      event: { id: eventId } as EventEntity,
+      participant: { id: participantId } as User,
     });
-    booking.event = event;
-    booking.participant = user;
 
-    return await this.bookingsRepository.save(booking);
+    const saved = await this.bookingsRepository.save(booking);
+    this.logger.log(`Booking created successfully: ${saved.id}`);
+    return saved;
   }
 
   async findAll() {
@@ -79,5 +87,19 @@ export class BookingsService {
     const booking = await this.findOne(id);
     await this.bookingsRepository.remove(booking);
     return booking;
+  }
+
+  async findByEvent(eventId: string) {
+    return this.bookingsRepository.find({
+      where: { event: { id: eventId } },
+      relations: ['participant'],
+      order: { createdAt: 'DESC' }
+    });
+  }
+
+  async updateStatus(id: string, status: string) {
+    const booking = await this.findOne(id);
+    booking.status = status;
+    return this.bookingsRepository.save(booking);
   }
 }
