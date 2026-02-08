@@ -102,4 +102,22 @@ export class BookingsService {
     booking.status = status;
     return this.bookingsRepository.save(booking);
   }
+
+  async findMyBookings(userId: string) {
+    return this.bookingsRepository.find({
+      where: { participant: { id: userId } },
+      relations: ['event'],
+      order: { createdAt: 'DESC' }
+    });
+  }
+
+  async cancelBooking(bookingId: string, userId: string) {
+    const booking = await this.findOne(bookingId);
+
+    if (booking.participant.id !== userId) {
+      throw new BadRequestException("You can only cancel your own bookings.");
+    }
+
+    return this.bookingsRepository.remove(booking);
+  }
 }

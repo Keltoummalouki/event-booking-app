@@ -10,6 +10,7 @@ export interface Booking {
         firstName?: string;
         lastName?: string;
     };
+    event?: Event; // Needed for My Bookings
     createdAt: string;
 }
 
@@ -94,5 +95,21 @@ export const eventService = {
      */
     async updateBookingStatus(bookingId: string, status: 'CONFIRMED' | 'REJECTED'): Promise<Booking> {
         return await api.patch<Booking>(`/bookings/${bookingId}/status`, { status });
+    },
+
+    /**
+     * Get my bookings (Participant only)
+     * GET /bookings/my-bookings
+     */
+    async getMyBookings(): Promise<Booking[]> {
+        return await api.get<Booking[]>('/bookings/my-bookings');
+    },
+
+    /**
+     * Cancel booking (Participant only)
+     * DELETE /bookings/:id
+     */
+    async cancelBooking(bookingId: string): Promise<void> {
+        await api.delete(`/bookings/${bookingId}`);
     },
 };
