@@ -1,6 +1,7 @@
 import { api } from '@/lib/api-client';
 import { CreateEventDto, Event, EventResponse, EventsListResponse } from '@/types/event.types';
 
+
 export const eventService = {
     /**
      * Create a new event (Admin only)
@@ -44,6 +45,15 @@ export const eventService = {
      */
     async deleteEvent(id: string): Promise<void> {
         await api.delete(`/events/${id}`);
+    },
+
+    /**
+     * Publish event (Admin only) - Change status from DRAFT to PUBLISHED
+     * PATCH /events/:id/publish
+     */
+    async publishEvent(id: string): Promise<Event> {
+        const response = await api.patch<EventResponse>(`/events/${id}/publish`);
+        return response.data;
     },
 };
 
