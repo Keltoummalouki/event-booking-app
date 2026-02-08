@@ -7,10 +7,10 @@ import { User } from './entities/user.entity';
 @Module({
   imports: [
     // Indispensable pour que @InjectRepository(User) fonctionne dans le service
-    TypeOrmModule.forFeature([User])
+    TypeOrmModule.forFeature([User]),
   ],
   providers: [UsersService],
   controllers: [UsersController],
-  exports: [UsersService] 
+  exports: [UsersService],
 })
 export class UsersModule {}

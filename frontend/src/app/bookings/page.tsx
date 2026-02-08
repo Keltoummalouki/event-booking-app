@@ -3,10 +3,10 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
-import { Calendar, MapPin, Clock, ArrowRight, Trash2 } from 'lucide-react';
+import { Calendar, MapPin, Clock, ArrowRight, Trash2, Download } from 'lucide-react';
 import PublicHeader from '@/components/layout/PublicHeader';
 import StatusBadge from '@/components/ui/StatusBadge';
-import { eventService, Booking } from '@/services/event.service';
+import { eventService, Booking, ReservationStatus } from '@/services/event.service';
 import Swal from 'sweetalert2';
 
 export default function BookingsPage() {
@@ -45,7 +45,10 @@ export default function BookingsPage() {
             try {
                 await eventService.cancelBooking(bookingId);
 
-                setBookings(prev => prev.filter(b => b.id !== bookingId));
+                // Update local state to reflect cancellation instead of removal
+                setBookings(prev => prev.map(b =>
+                    b.id === bookingId ? { ...b, status: 'CANCELED' } : b
+                ));
 
                 Swal.fire({
                     title: 'Cancelled!',
@@ -67,6 +70,8 @@ export default function BookingsPage() {
             }
         }
     };
+
+
 
     return (
         <div className="min-h-screen bg-cream dark:bg-navy-dark">
@@ -113,7 +118,10 @@ export default function BookingsPage() {
                                         animate={{ opacity: 1, y: 0 }}
                                         exit={{ opacity: 0, scale: 0.9 }}
                                         transition={{ delay: index * 0.1 }}
-                                        className="group bg-white dark:bg-navy rounded-xl overflow-hidden border border-slate/10 dark:border-white/5 hover:shadow-lg hover:border-coral/20 transition-all duration-300 flex flex-col"
+                                        className={`group bg-white dark:bg-navy rounded-xl overflow-hidden border transition-all duration-300 flex flex-col ${booking.status === 'CANCELED'
+                                            ? 'opacity-75 border-slate/10 dark:border-white/5 grayscale-[0.5]'
+                                            : 'border-slate/10 dark:border-white/5 hover:shadow-lg hover:border-coral/20'
+                                            }`}
                                     >
                                         {/* Event Image (Fallback) */}
                                         <div className="h-40 bg-slate-100 dark:bg-navy-light relative overflow-hidden">
@@ -127,12 +135,7 @@ export default function BookingsPage() {
                                                 <div className="w-full h-full bg-gradient-to-br from-navy/5 to-coral/5 dark:from-white/5 dark:to-coral/10" />
                                             )}
                                             <div className="absolute top-3 right-3">
-                                                <span className={`px-2 py-1 rounded text-xs font-bold uppercase tracking-wider bg-white/90 dark:bg-navy/90 backdrop-blur-sm shadow-sm ${booking.status === 'CONFIRMED' ? 'text-success' :
-                                                        booking.status === 'REJECTED' ? 'text-error' :
-                                                            'text-warning'
-                                                    }`}>
-                                                    {booking.status}
-                                                </span>
+                                                <StatusBadge status={booking.status} className="bg-white/90 dark:bg-navy/90 backdrop-blur-sm shadow-sm" />
                                             </div>
                                         </div>
 
@@ -160,7 +163,17 @@ export default function BookingsPage() {
                                                 <span>Booked {new Date(booking.createdAt).toLocaleDateString()}</span>
 
                                                 <div className="flex items-center gap-3">
-                                                    {(booking.status === 'PENDING' || booking.status === 'CONFIRMED') && (
+                                                    {booking.status === 'CONFIRMED' && (
+                                                        <button
+                                                            onClick={() => eventService.downloadTicket(booking.id, booking.event?.title || 'event')}
+                                                            className="text-emerald-600 hover:text-emerald-700 font-medium flex items-center gap-1 hover:underline"
+                                                            title="Download Ticket"
+                                                        >
+                                                            <Download size={14} />
+                                                            Ticket
+                                                        </button>
+                                                    )}
+                                                    {booking.status === 'PENDING' && (
                                                         <button
                                                             onClick={() => handleCancel(booking.id)}
                                                             className="text-error hover:text-error/80 font-medium flex items-center gap-1 hover:underline"

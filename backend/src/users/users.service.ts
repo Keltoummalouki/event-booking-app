@@ -14,8 +14,10 @@ export class UsersService {
 
   async create(createUserDto: CreateUserDto): Promise<Partial<User>> {
     const { email, password, role } = createUserDto;
-    
-    const existingUser = await this.usersRepository.findOne({ where: { email } });
+
+    const existingUser = await this.usersRepository.findOne({
+      where: { email },
+    });
     if (existingUser) throw new ConflictException('Email already exists');
 
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -26,16 +28,16 @@ export class UsersService {
     });
 
     const savedUser = await this.usersRepository.save(user);
-    
+
     // destructure pour exclure le password proprement
     const { password: _, ...userWithoutPassword } = savedUser;
     return userWithoutPassword;
   }
 
   async findByEmail(email: string): Promise<User | null> {
-    return this.usersRepository.findOne({ 
+    return this.usersRepository.findOne({
       where: { email },
-      select: ['id', 'email', 'password', 'role']
+      select: ['id', 'email', 'password', 'role'],
     });
   }
 }
