@@ -145,7 +145,18 @@ export async function apiClient<T = unknown>(
             return undefined as T;
         }
 
-        return response.json();
+        // Check if response has body before parsing JSON
+        const text = await response.text();
+        if (!text) {
+            return undefined as T;
+        }
+
+        try {
+            return JSON.parse(text);
+        } catch (e) {
+            console.error('Failed to parse response JSON:', text);
+            throw new Error('Invalid JSON response from server');
+        }
     } catch (error) {
         // Handle network errors
         if (error instanceof TypeError && error.message.includes('fetch')) {

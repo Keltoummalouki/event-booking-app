@@ -5,7 +5,8 @@ import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
 import { EventsModule } from './events/events.module';
 import { User } from './users/entities/user.entity';
-import { Event } from './events/entities/event.entity'; 
+import { Event } from './events/entities/event.entity';
+import { Booking } from './bookings/entities/booking.entity';
 import { BookingsModule } from './bookings/bookings.module';
 
 @Module({
@@ -18,7 +19,7 @@ import { BookingsModule } from './bookings/bookings.module';
       username: process.env.DB_USERNAME,
       password: process.env.DB_PASSWORD,
       database: process.env.DB_NAME,
-      entities: [User, Event], 
+      entities: [User, Event, Booking],
       synchronize: true,
     }),
     UsersModule,

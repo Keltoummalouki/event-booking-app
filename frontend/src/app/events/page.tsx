@@ -6,25 +6,59 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 
 /**
  * Fetch public events server-side with no caching for fresh data
+ * Falls back to /events endpoint and filters for PUBLISHED if /events/public is unavailable
  */
 async function getPublicEvents(): Promise<Event[]> {
-    try {
-        const response = await fetch(`${API_URL}/events/public`, {
-            cache: 'no-store',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-        });
+    console.log('[SSR] Fetching events from:', API_URL);
 
-        if (!response.ok) {
-            console.error('Failed to fetch public events:', response.status);
-            return [];
+    try {
+        // Try the public endpoint first
+        try {
+            const response = await fetch(`${API_URL}/events/public`, {
+                cache: 'no-store',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            });
+
+            console.log('[SSR] /events/public response status:', response.status);
+
+            if (response.ok) {
+                const data = await response.json();
+                console.log('[SSR] /events/public data:', Array.isArray(data) ? `${data.length} events` : data);
+                // Handle both { data: Event[] } and Event[] formats
+                const events = Array.isArray(data) ? data : (data.data || []);
+                return events;
+            }
+        } catch (error) {
+            console.log('[SSR] /events/public error:', error);
         }
 
-        const data: EventsListResponse = await response.json();
-        return data.data || [];
+        // Fallback: Try regular /events endpoint and filter for PUBLISHED
+        try {
+            const response = await fetch(`${API_URL}/events`, {
+                cache: 'no-store',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            });
+
+            console.log('[SSR] /events response status:', response.status);
+
+            if (response.ok) {
+                const data = await response.json();
+                console.log('[SSR] /events data:', Array.isArray(data) ? `${data.length} events` : data);
+                // Handle both { data: Event[] } and Event[] formats
+                const events = Array.isArray(data) ? data : (data.data || []);
+                return events.filter((event: Event) => event.status === 'PUBLISHED');
+            }
+        } catch (error) {
+            console.log('[SSR] /events error:', error);
+        }
+
+        return [];
     } catch (error) {
-        console.error('Error fetching public events:', error);
+        console.log('[SSR] Catch-all error:', error);
         return [];
     }
 }

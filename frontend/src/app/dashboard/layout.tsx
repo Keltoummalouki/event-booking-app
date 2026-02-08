@@ -1,7 +1,12 @@
+'use client';
+
 import { ReactNode } from 'react';
 import DashboardSidebar from '@/components/dashboard/DashboardSidebar';
+import { useAdminGuard } from '@/lib/auth-guard';
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
+    useAdminGuard();
+
     return (
         <div className="flex min-h-screen bg-cream">
             <DashboardSidebar />

@@ -1,4 +1,4 @@
-import { Controller, Post, Body, UseGuards, Request, Get, Query, Param, Patch } from '@nestjs/common';
+import { Controller, Post, Body, UseGuards, Request, Get, Query, Param, Patch, Delete } from '@nestjs/common';
 import { EventsService } from './events.service';
 import { CreateEventDto } from './dto/create-event.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -8,19 +8,35 @@ import { UserRole } from '../users/entities/user.entity';
 
 @Controller('events')
 export class EventsController {
-  constructor(private readonly eventsService: EventsService) {}
+  constructor(private readonly eventsService: EventsService) { }
 
   @Post()
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.ADMIN) // Seul l'Admin peut créer
+  @Roles(UserRole.ADMIN)
   create(@Body() createEventDto: CreateEventDto, @Request() req) {
     return this.eventsService.create(createEventDto, req.user);
   }
 
-  @Get() // Catalogue public
+  @Get('public')
+  findAllPublic() {
+    return this.eventsService.findAllPublished();
+  }
+
+  @Get()
   findAll(@Query('status') status: string) {
-    // Par défaut, on ne montre que les PUBLISHED aux non-admins
     return this.eventsService.findAll(status);
+  }
+
+  @Get(':id')
+  findOne(@Param('id') id: string) {
+    return this.eventsService.findOne(id);
+  }
+
+  @Patch(':id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  update(@Param('id') id: string, @Body() updateEventDto: Partial<CreateEventDto>) {
+    return this.eventsService.update(id, updateEventDto);
   }
 
   @Patch(':id/publish')
@@ -30,8 +46,11 @@ export class EventsController {
     return this.eventsService.publish(id);
   }
 
-  @Get('public') // Route accessible sans connexion
-  findAllPublic() {
-    return this.eventsService.findAllPublished();
+  @Delete(':id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  remove(@Param('id') id: string) {
+    return this.eventsService.remove(id);
   }
 }
+
