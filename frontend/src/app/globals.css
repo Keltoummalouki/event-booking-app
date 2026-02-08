@@ -1,0 +1,489 @@
+/* Google Fonts - Playfair Display - Must be first */
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&display=swap');
+
+@import "tailwindcss";
+
+/* ============================================
+   PREMIUM PALETTE
+   Light & Dark Mode CSS Variables
+   ============================================ */
+
+:root {
+  /* Core Palette */
+  --navy-deep: #0F172A;
+  --navy-darker: #020617;
+  --slate-gray: #64748B;
+  --slate-light: #94A3B8;
+  --coral-vibrant: #F97316;
+  --coral-hover: #EA580C;
+  --cream: #F8F8F8;
+  --cream-dark: #EFEFEF;
+  --success: #22C55E;
+  --error: #EF4444;
+
+  /* Light Mode Defaults */
+  --background: var(--cream);
+  --background-secondary: #FFFFFF;
+  --foreground: var(--navy-deep);
+  --foreground-muted: var(--slate-gray);
+
+  /* Glass Effects - Light */
+  --glass-bg: rgba(255, 255, 255, 0.85);
+  --glass-border: rgba(15, 23, 42, 0.08);
+  --glass-blur: 16px;
+
+  /* Card & Surface */
+  --card-bg: #FFFFFF;
+  --card-border: rgba(100, 116, 139, 0.1);
+  --input-bg: rgba(248, 248, 248, 0.5);
+  --input-border: rgba(100, 116, 139, 0.2);
+
+  /* Shadows - Light */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 4px 8px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 16px 32px rgba(0, 0, 0, 0.08);
+
+  /* Coral Glow */
+  --coral-glow: rgba(249, 115, 22, 0.2);
+  --coral-glow-strong: rgba(249, 115, 22, 0.35);
+}
+
+/* Dark Mode */
+.dark {
+  --background: var(--navy-darker);
+  --background-secondary: var(--navy-deep);
+  --foreground: var(--cream);
+  --foreground-muted: var(--slate-light);
+
+  /* Glass Effects - Dark */
+  --glass-bg: rgba(30, 41, 59, 0.7);
+  --glass-border: rgba(255, 255, 255, 0.08);
+
+  /* Card & Surface - Dark */
+  --card-bg: rgba(30, 41, 59, 0.6);
+  --card-border: rgba(255, 255, 255, 0.06);
+  --input-bg: rgba(15, 23, 42, 0.4);
+  --input-border: rgba(255, 255, 255, 0.1);
+
+  /* Shadows - Dark (with glow) */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.2);
+  --shadow-md: 0 4px 8px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 16px 32px rgba(0, 0, 0, 0.4);
+
+  /* Enhanced Coral Glow for Dark Mode */
+  --coral-glow: rgba(249, 115, 22, 0.3);
+  --coral-glow-strong: rgba(249, 115, 22, 0.5);
+}
+
+@theme inline {
+  /* Colors */
+  --color-background: var(--background);
+  --color-background-secondary: var(--background-secondary);
+  --color-foreground: var(--foreground);
+  --color-foreground-muted: var(--foreground-muted);
+  --color-navy: var(--navy-deep);
+  --color-navy-dark: var(--navy-darker);
+  --color-slate: var(--slate-gray);
+  --color-slate-light: var(--slate-light);
+  --color-coral: var(--coral-vibrant);
+  --color-coral-hover: var(--coral-hover);
+  --color-cream: var(--cream);
+  --color-cream-dark: var(--cream-dark);
+  --color-success: var(--success);
+  --color-error: var(--error);
+
+  /* Fonts */
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+  --font-serif: 'Playfair Display', Georgia, serif;
+
+  /* Animations */
+  --ease-back-out: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-anticipate: cubic-bezier(0.36, 0, 0.66, -0.56);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* ============================================
+   ANIMATIONS
+   ============================================ */
+
+/* Input underline animation */
+@keyframes underline-grow {
+  from {
+    transform: scaleX(0);
+  }
+
+  to {
+    transform: scaleX(1);
+  }
+}
+
+/* Toast animations */
+@keyframes toast-slide-in {
+  from {
+    transform: translateX(100%) translateY(20px);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateX(0) translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes toast-slide-out {
+  from {
+    transform: translateX(0) translateY(0);
+    opacity: 1;
+  }
+
+  to {
+    transform: translateX(100%) translateY(-20px);
+    opacity: 0;
+  }
+}
+
+@keyframes float {
+
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -1000px 0;
+  }
+
+  100% {
+    background-position: 1000px 0;
+  }
+}
+
+@keyframes reveal-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse-glow {
+
+  0%,
+  100% {
+    box-shadow: 0 0 20px var(--coral-glow);
+  }
+
+  50% {
+    box-shadow: 0 0 30px var(--coral-glow-strong);
+  }
+}
+
+/* ============================================
+   UTILITY CLASSES
+   ============================================ */
+
+.font-serif {
+  font-family: 'Playfair Display', Georgia, serif;
+}
+
+.tracking-tight-custom {
+  letter-spacing: -0.02em;
+}
+
+/* Animation utilities */
+.animate-underline-grow {
+  animation: underline-grow 0.3s var(--ease-back-out) forwards;
+  transform-origin: left center;
+}
+
+.animate-toast-in {
+  animation: toast-slide-in 0.4s var(--ease-back-out) forwards;
+}
+
+.animate-toast-out {
+  animation: toast-slide-out 0.3s ease-in forwards;
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+.animate-shimmer {
+  animation: shimmer 2s infinite;
+  background: linear-gradient(to right,
+      transparent 0%,
+      rgba(249, 115, 22, 0.1) 50%,
+      transparent 100%);
+  background-size: 1000px 100%;
+}
+
+.animate-reveal {
+  animation: reveal-up 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+/* Asymmetric button shape */
+.btn-asymmetric {
+  border-radius: 4px 16px 4px 16px;
+}
+
+/* ============================================
+   SCROLLBAR
+   ============================================ */
+
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--background-secondary);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--foreground-muted);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--foreground);
+}
+
+/* ============================================
+   GLASSMORPHISM
+   ============================================ */
+
+.glass {
+  background: var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid var(--glass-border);
+}
+
+.glass-enhanced {
+  background: var(--glass-bg);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--glass-border);
+}
+
+/* Stronger blur for modals */
+.glass-modal {
+  background: var(--glass-bg);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+}
+
+/* ============================================
+   SHADOWS & DEPTH
+   ============================================ */
+
+.shadow-layered {
+  box-shadow:
+    var(--shadow-sm),
+    var(--shadow-md),
+    var(--shadow-lg);
+}
+
+.shadow-layered-hover {
+  box-shadow:
+    0 2px 4px rgba(0, 0, 0, 0.06),
+    0 8px 16px rgba(0, 0, 0, 0.08),
+    0 24px 48px rgba(0, 0, 0, 0.12);
+}
+
+.dark .shadow-layered-hover {
+  box-shadow:
+    0 2px 4px rgba(0, 0, 0, 0.3),
+    0 8px 16px rgba(0, 0, 0, 0.35),
+    0 24px 48px rgba(0, 0, 0, 0.4),
+    0 0 40px var(--coral-glow);
+}
+
+/* Ring utilities (replacing borders) */
+.ring-subtle {
+  box-shadow: inset 0 0 0 1px var(--card-border);
+}
+
+/* ============================================
+   BUTTONS
+   ============================================ */
+
+.btn-magnetic {
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1),
+    box-shadow 0.3s ease;
+}
+
+.btn-magnetic:hover {
+  transform: translateY(-2px) scale(1.02);
+}
+
+/* ============================================
+   GRADIENTS
+   ============================================ */
+
+.gradient-coral {
+  background: linear-gradient(135deg, #F97316 0%, #EA580C 100%);
+}
+
+.bg-gradient-coral {
+  background: linear-gradient(135deg, #F97316 0%, #EA580C 100%);
+}
+
+.gradient-coral-subtle {
+  background: linear-gradient(135deg, rgba(249, 115, 22, 0.1) 0%, rgba(234, 88, 12, 0.05) 100%);
+}
+
+/* ============================================
+   CLIP PATHS
+   ============================================ */
+
+.clip-corner-br {
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 20px), calc(100% - 20px) 100%, 0 100%);
+}
+
+.clip-corner-tr {
+  clip-path: polygon(0 0, calc(100% - 20px) 0, 100% 20px, 100% 100%, 0 100%);
+}
+
+.clip-angle-top {
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 24px), 85% 100%, 0 100%);
+}
+
+/* ============================================
+   CORAL GLOW EFFECTS
+   ============================================ */
+
+.glow-coral {
+  box-shadow: 0 0 20px var(--coral-glow),
+    0 0 40px rgba(249, 115, 22, 0.1);
+}
+
+.dark .glow-coral {
+  box-shadow: 0 0 25px var(--coral-glow-strong),
+    0 0 50px var(--coral-glow);
+}
+
+/* ============================================
+   IMAGES & MEDIA
+   ============================================ */
+
+.saturate-hover {
+  filter: saturate(0.9);
+  transition: filter 0.3s ease;
+}
+
+.group:hover .saturate-hover {
+  filter: saturate(1.15);
+}
+
+/* ============================================
+   PROGRESS BARS
+   ============================================ */
+
+.progress-bar-base {
+  background: rgba(100, 116, 139, 0.15);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.dark .progress-bar-base {
+  background: rgba(148, 163, 184, 0.15);
+}
+
+.progress-bar-fill {
+  background: linear-gradient(90deg, var(--coral-vibrant) 0%, var(--coral-hover) 100%);
+  border-radius: 999px;
+  transition: width 0.6s ease-out;
+}
+
+/* ============================================
+   FORM ELEMENTS - DARK MODE FIXES
+   ============================================ */
+
+/* Increase label contrast */
+.dark label {
+  color: var(--foreground);
+  opacity: 0.95;
+}
+
+/* Input styling */
+input,
+textarea,
+select {
+  background: var(--input-bg);
+  border-color: var(--input-border);
+  color: var(--foreground);
+  transition: background-color 0.2s, border-color 0.2s, color 0.2s;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--foreground-muted);
+  opacity: 0.6;
+}
+
+.dark input::placeholder,
+.dark textarea::placeholder {
+  opacity: 0.5;
+}
+
+/* Focus states */
+input:focus,
+textarea:focus,
+select:focus {
+  border-color: var(--coral-vibrant);
+  box-shadow: 0 0 0 3px var(--coral-glow);
+}
+
+/* ============================================
+   CARDS - THEME AWARE
+   ============================================ */
+
+.card {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+}
+
+.dark .bg-white {
+  background: var(--card-bg) !important;
+}
+
+.dark .bg-cream {
+  background: var(--background) !important;
+}
+
+/* ============================================
+   MODAL OVERLAY - ENHANCED BLUR
+   ============================================ */
+
+.modal-backdrop {
+  background: rgba(2, 6, 23, 0.7);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.dark .modal-backdrop {
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
