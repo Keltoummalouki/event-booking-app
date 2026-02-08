@@ -1,4 +1,4 @@
-import { Controller, Post, Body, UseGuards, Request, Get, Param, Patch } from '@nestjs/common';
+import { Controller, Post, Body, UseGuards, Request, Get, Param, Patch, Delete } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
@@ -14,6 +14,22 @@ export class BookingsController {
   @Roles(UserRole.PARTICIPANT)
   async create(@Body('eventId') eventId: string, @Request() req: any) {
     return this.bookingsService.create(eventId, req.user);
+  }
+
+  @Get('my-bookings')
+  @UseGuards(JwtAuthGuard)
+  async findMyBookings(@Request() req: any) {
+    const userId = req.user.userId || req.user.id;
+    return this.bookingsService.findMyBookings(userId);
+  }
+
+
+
+  @Delete(':id')
+  @UseGuards(JwtAuthGuard)
+  async cancelBooking(@Param('id') id: string, @Request() req: any) {
+    const userId = req.user.userId || req.user.id;
+    return this.bookingsService.cancelBooking(id, userId);
   }
 
   @Get('event/:eventId')
