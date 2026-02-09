@@ -37,7 +37,7 @@ export default function EventCard({
     const isUpcoming = eventDate > new Date();
 
     // Calculate days until event
-    const daysUntil = Math.ceil((eventDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+    const daysUntil = Math.ceil((eventDate.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
 
     // TODO: Integrate Booking API - Currently using mock data
     const fillPercentage = 65;

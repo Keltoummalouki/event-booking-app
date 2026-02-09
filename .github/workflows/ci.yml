@@ -74,7 +74,7 @@ jobs:
         env:
           DB_HOST: localhost
           DB_PORT: 5432
-          DB_USER: postgres
+          DB_USERNAME: postgres
           DB_PASSWORD: password
           DB_NAME: event_booking_db
           JWT_SECRET: test_secret
