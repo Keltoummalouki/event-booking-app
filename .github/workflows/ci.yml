@@ -163,7 +163,7 @@ jobs:
     name: Build & Push Docker Images
     runs-on: ubuntu-latest
     needs: [build-backend, build-frontend]
-    if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/EBA-21-github-actions-ci'
 
     steps:
       - uses: actions/checkout@v4
