@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -11,11 +12,11 @@ import AuthLayout from '@/components/auth/AuthLayout';
 import FloatingInput from '@/components/auth/FloatingInput';
 import MagneticButton from '@/components/auth/MagneticButton';
 import Toast from '@/components/auth/Toast';
-import { 
-  registerStep1Schema, 
-  registerStep2Schema, 
-  RegisterStep1Data, 
-  RegisterStep2Data 
+import {
+  registerStep1Schema,
+  registerStep2Schema,
+  RegisterStep1Data,
+  RegisterStep2Data
 } from '@/lib/validations/auth';
 import { register as registerUser } from '@/services/auth.service';
 
@@ -65,8 +66,8 @@ export default function RegisterPage() {
   };
 
   return (
-    <AuthLayout 
-      heroTitle="Join the Community" 
+    <AuthLayout
+      heroTitle="Join the Community"
       heroSubtitle="Start your journey today and get access to exclusive workshops and professional networking."
     >
       <div className="relative overflow-hidden min-h-[500px]">
@@ -121,7 +122,7 @@ export default function RegisterPage() {
               <button onClick={() => setStep(1)} className="flex items-center text-slate hover:text-navy transition-colors mb-4">
                 <ArrowLeft size={16} className="mr-2" /> Back
               </button>
-              
+
               <div>
                 <h2 className="font-serif text-3xl text-navy mb-2">Almost there</h2>
                 <p className="text-slate">Complete your profile</p>
@@ -150,6 +151,7 @@ export default function RegisterPage() {
                       />
                       <span className="text-slate">Participant</span>
                     </label>
+
                     <label className="flex items-center">
                       <input
                         type="radio"
@@ -185,11 +187,11 @@ export default function RegisterPage() {
         </AnimatePresence>
       </div>
 
-      <Toast 
-        message={toast.message} 
-        type={toast.type} 
-        isVisible={toast.visible} 
-        onClose={() => setToast({ ...toast, visible: false })} 
+      <Toast
+        message={toast.message}
+        type={toast.type}
+        isVisible={toast.visible}
+        onClose={() => setToast({ ...toast, visible: false })}
       />
     </AuthLayout>
   );

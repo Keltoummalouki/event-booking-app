@@ -10,6 +10,98 @@ interface UserData {
     email: string;
 }
 
+const SettingsCard = ({
+    title,
+    icon: Icon,
+    children,
+    onSave,
+    isSaved,
+    isSaving,
+}: {
+    title: string;
+    icon: React.ElementType;
+    children: React.ReactNode;
+    onSave: () => void;
+    isSaved: boolean;
+    isSaving: boolean;
+}) => (
+    <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.4 }}
+        className="relative bg-white overflow-hidden shadow-layered rounded-lg p-6"
+    >
+        {/* Header */}
+        <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-lg bg-coral/10 flex items-center justify-center">
+                    <Icon className="w-5 h-5 text-coral" />
+                </div>
+                <h2 className="font-serif text-xl font-semibold text-navy">{title}</h2>
+            </div>
+
+            {/* Save Button */}
+            <motion.button
+                onClick={onSave}
+                disabled={isSaving}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 ${isSaved
+                    ? 'bg-success/10 text-success'
+                    : 'bg-coral/10 text-coral hover:bg-coral hover:text-white'
+                    }`}
+            >
+                {isSaved ? (
+                    <>
+                        <Check size={16} />
+                        Saved
+                    </>
+                ) : (
+                    <>
+                        <Save size={16} />
+                        Save
+                    </>
+                )}
+            </motion.button>
+        </div>
+
+        {/* Content */}
+        <div className="space-y-4">{children}</div>
+    </motion.div>
+);
+
+const ToggleSwitch = ({
+    checked,
+    onChange,
+    label,
+    description,
+}: {
+    checked: boolean;
+    onChange: (value: boolean) => void;
+    label: string;
+    description?: string;
+}) => (
+    <div className="flex items-center justify-between py-3 border-b border-slate/10 last:border-0">
+        <div>
+            <p className="text-sm font-medium text-navy">{label}</p>
+            {description && <p className="text-xs text-slate mt-0.5">{description}</p>}
+        </div>
+        <button
+            onClick={() => onChange(!checked)}
+            className={`relative w-12 h-6 rounded-full transition-colors duration-300 ${checked ? 'bg-coral' : 'bg-slate/20'
+                }`}
+        >
+            <motion.div
+                layout
+                transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+                className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow-sm ${checked ? 'left-7' : 'left-1'
+                    }`}
+            />
+        </button>
+    </div>
+);
+
 export default function SettingsPage() {
     const [user, setUser] = useState<UserData | null>(null);
     const [isSaving, setIsSaving] = useState(false);
@@ -49,94 +141,6 @@ export default function SettingsPage() {
         setSavedSection(section);
         setTimeout(() => setSavedSection(null), 2000);
     };
-
-    const SettingsCard = ({
-        title,
-        icon: Icon,
-        sectionKey,
-        children,
-    }: {
-        title: string;
-        icon: React.ElementType;
-        sectionKey: string;
-        children: React.ReactNode;
-    }) => (
-        <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.4 }}
-            className="relative bg-white overflow-hidden shadow-layered rounded-lg p-6"
-        >
-            {/* Header */}
-            <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-lg bg-coral/10 flex items-center justify-center">
-                        <Icon className="w-5 h-5 text-coral" />
-                    </div>
-                    <h2 className="font-serif text-xl font-semibold text-navy">{title}</h2>
-                </div>
-
-                {/* Save Button */}
-                <motion.button
-                    onClick={() => handleSaveSection(sectionKey)}
-                    disabled={isSaving}
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 ${savedSection === sectionKey
-                            ? 'bg-success/10 text-success'
-                            : 'bg-coral/10 text-coral hover:bg-coral hover:text-white'
-                        }`}
-                >
-                    {savedSection === sectionKey ? (
-                        <>
-                            <Check size={16} />
-                            Saved
-                        </>
-                    ) : (
-                        <>
-                            <Save size={16} />
-                            Save
-                        </>
-                    )}
-                </motion.button>
-            </div>
-
-            {/* Content */}
-            <div className="space-y-4">{children}</div>
-        </motion.div>
-    );
-
-    const ToggleSwitch = ({
-        checked,
-        onChange,
-        label,
-        description,
-    }: {
-        checked: boolean;
-        onChange: (value: boolean) => void;
-        label: string;
-        description?: string;
-    }) => (
-        <div className="flex items-center justify-between py-3 border-b border-slate/10 last:border-0">
-            <div>
-                <p className="text-sm font-medium text-navy">{label}</p>
-                {description && <p className="text-xs text-slate mt-0.5">{description}</p>}
-            </div>
-            <button
-                onClick={() => onChange(!checked)}
-                className={`relative w-12 h-6 rounded-full transition-colors duration-300 ${checked ? 'bg-coral' : 'bg-slate/20'
-                    }`}
-            >
-                <motion.div
-                    layout
-                    transition={{ type: 'spring', stiffness: 500, damping: 30 }}
-                    className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow-sm ${checked ? 'left-7' : 'left-1'
-                        }`}
-                />
-            </button>
-        </div>
-    );
 
     return (
         <div className="min-h-screen">
@@ -180,7 +184,13 @@ export default function SettingsPage() {
                 {/* Settings Sections */}
                 <div className="space-y-8">
                     {/* Profile Section */}
-                    <SettingsCard title="Profile" icon={User} sectionKey="profile">
+                    <SettingsCard
+                        title="Profile"
+                        icon={User}
+                        onSave={() => handleSaveSection('profile')}
+                        isSaved={savedSection === 'profile'}
+                        isSaving={isSaving}
+                    >
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
                                 <label className="block text-xs font-medium text-slate uppercase tracking-wider mb-2">
@@ -230,7 +240,13 @@ export default function SettingsPage() {
                     </SettingsCard>
 
                     {/* Notifications Section */}
-                    <SettingsCard title="Notifications" icon={Bell} sectionKey="notifications">
+                    <SettingsCard
+                        title="Notifications"
+                        icon={Bell}
+                        onSave={() => handleSaveSection('notifications')}
+                        isSaved={savedSection === 'notifications'}
+                        isSaving={isSaving}
+                    >
                         <ToggleSwitch
                             checked={notifications.emailAlerts}
                             onChange={(value) =>
@@ -269,7 +285,13 @@ export default function SettingsPage() {
                     </SettingsCard>
 
                     {/* Appearance Section */}
-                    <SettingsCard title="Appearance" icon={Palette} sectionKey="appearance">
+                    <SettingsCard
+                        title="Appearance"
+                        icon={Palette}
+                        onSave={() => handleSaveSection('appearance')}
+                        isSaved={savedSection === 'appearance'}
+                        isSaving={isSaving}
+                    >
                         <div>
                             <label className="block text-xs font-medium text-slate uppercase tracking-wider mb-3">
                                 Theme
@@ -282,8 +304,8 @@ export default function SettingsPage() {
                                             setAppearance((prev) => ({ ...prev, theme }))
                                         }
                                         className={`px-4 py-2 rounded-lg text-sm font-medium capitalize transition-all duration-300 ${appearance.theme === theme
-                                                ? 'bg-coral text-white'
-                                                : 'bg-slate/10 text-slate hover:bg-coral/10 hover:text-coral'
+                                            ? 'bg-coral text-white'
+                                            : 'bg-slate/10 text-slate hover:bg-coral/10 hover:text-coral'
                                             }`}
                                     >
                                         {theme}
@@ -302,7 +324,13 @@ export default function SettingsPage() {
                     </SettingsCard>
 
                     {/* Security Section */}
-                    <SettingsCard title="Security" icon={Shield} sectionKey="security">
+                    <SettingsCard
+                        title="Security"
+                        icon={Shield}
+                        onSave={() => handleSaveSection('security')}
+                        isSaved={savedSection === 'security'}
+                        isSaving={isSaving}
+                    >
                         <div className="py-3 border-b border-slate/10">
                             <div className="flex items-center justify-between">
                                 <div>

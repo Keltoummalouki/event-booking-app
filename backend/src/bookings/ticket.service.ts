@@ -6,7 +6,18 @@ import { Booking } from './entities/booking.entity';
 @Injectable()
 export class TicketService {
   async generateTicketPdf(booking: Booking): Promise<Buffer> {
-    return new Promise(async (resolve, reject) => {
+    // --- Generate QR Code (Async) ---
+    const qrCodeDataUrl = await QRCode.toDataURL(`BOOKING:${booking.id}`, {
+      width: 150,
+      margin: 0,
+      color: { dark: '#000000', light: '#ffffff' },
+    });
+    const qrCodeBuffer = Buffer.from(
+      qrCodeDataUrl.replace(/^data:image\/png;base64,/, ''),
+      'base64',
+    );
+
+    return new Promise((resolve, reject) => {
       try {
         const doc = new PDFDocument({
           size: 'A5',
@@ -142,16 +153,6 @@ export class TicketService {
           .text(booking.id, margin + 10, idBoxY + 28);
 
         // --- QR Code ---
-        const qrCodeDataUrl = await QRCode.toDataURL(`BOOKING:${booking.id}`, {
-          width: 150,
-          margin: 0,
-          color: { dark: '#000000', light: '#ffffff' },
-        });
-        const qrCodeBuffer = Buffer.from(
-          qrCodeDataUrl.replace(/^data:image\/png;base64,/, ''),
-          'base64',
-        );
-
         const qrY = idBoxY + 70;
         doc.image(qrCodeBuffer, (doc.page.width - 150) / 2, qrY, {
           width: 150,
@@ -168,7 +169,7 @@ export class TicketService {
             `Generated on ${new Date().toLocaleDateString()} | Present this ticket at the event entrance.`,
             margin,
             bottomY,
-            { align: 'center', width: width },
+            { align: 'center' },
           );
 
         doc.end();
