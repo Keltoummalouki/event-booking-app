@@ -1,0 +1,77 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: booking-postgres
+    restart: always
+    environment:
+      POSTGRES_USER: ${DB_USERNAME:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-22062016}
+      POSTGRES_DB: ${DB_NAME:-event_booking_db}
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - app_network
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      target: dev
+    container_name: booking-backend
+    restart: always
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+    depends_on:
+      - postgres
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USERNAME: ${DB_USERNAME:-postgres}
+      DB_PASSWORD: ${DB_PASSWORD:-22062016}
+      DB_NAME: ${DB_NAME:-event_booking_db}
+      PORT: 3000
+      # FRONTEND_URL is used for CORS
+      FRONTEND_URL: http://localhost:3001
+    ports:
+      - "3000:3000"
+    networks:
+      - app_network
+    command: npm run start:dev
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      target: dev
+      args:
+        NEXT_PUBLIC_API_URL: http://localhost:3000
+    container_name: booking-frontend
+    restart: always
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    depends_on:
+      - backend
+    environment:
+      # Use internal URL for server-side fetches
+      API_URL_INTERNAL: http://backend:3000
+      # Original public URL for reference (client-side uses build-time value)
+      NEXT_PUBLIC_API_URL: http://localhost:3000
+      WATCHPACK_POLLING: "true"
+    ports:
+      - "3001:3000" # Mapped to 3001 as requested
+    networks:
+      - app_network
+    command: npm run dev
+
+networks:
+  app_network:
+    driver: bridge
+
+volumes:
+  postgres_data:
