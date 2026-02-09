@@ -210,11 +210,14 @@ export default function EventCard({
                 {/* Cover Image / Gradient Header with angled corner */}
                 <div className="relative h-48 clip-angle-top overflow-hidden">
                     {event.coverImageUrl ? (
-                        <img
-                            src={event.coverImageUrl}
-                            alt={event.title}
-                            className="w-full h-full object-cover saturate-hover"
-                        />
+                        <div className="relative w-full h-48 overflow-hidden bg-slate-100 dark:bg-navy/50">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                                src={event.coverImageUrl || 'https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?auto=format&fit=crop&q=80&w=1000'}
+                                alt={event.title}
+                                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                            />
+                        </div>
                     ) : (
                         <div className="w-full h-full bg-gradient-to-br from-navy/80 via-navy/60 to-coral/40 saturate-hover" />
                     )}

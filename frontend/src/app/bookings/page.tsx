@@ -126,10 +126,11 @@ export default function BookingsPage() {
                                         {/* Event Image (Fallback) */}
                                         <div className="h-40 bg-slate-100 dark:bg-navy-light relative overflow-hidden">
                                             {booking.event?.coverImageUrl ? (
+                                                /* eslint-disable-next-line @next/next/no-img-element */
                                                 <img
-                                                    src={booking.event.coverImageUrl}
+                                                    src={booking.event.coverImageUrl || 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&q=80&w=2670'}
                                                     alt={booking.event.title}
-                                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                                                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                                                 />
                                             ) : (
                                                 <div className="w-full h-full bg-gradient-to-br from-navy/5 to-coral/5 dark:from-white/5 dark:to-coral/10" />

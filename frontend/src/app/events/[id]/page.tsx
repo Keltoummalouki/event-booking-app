@@ -334,9 +334,9 @@ export default function PublicEventDetailPage() {
                                             <span className="font-semibold text-foreground">{event.capacity}</span>
                                         </div>
                                         <div className="flex justify-between text-sm">
-                                            <span className="text-foreground-muted">Price</span>
-                                            <span className="font-semibold text-success">Free</span>
-                                        </div>
+                                            <p className="text-slate dark:text-gray-400 mb-6">
+                                                You&apos;re about to book <span className="font-bold text-navy dark:text-white">{event.title}</span>.
+                                            </p>    </div>
                                     </div>
 
                                     {event.status === 'PUBLISHED' ? (
