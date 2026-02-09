@@ -10,7 +10,7 @@ import { isAuthenticated, getCurrentUser, logout } from '@/services/auth.service
 
 export default function PublicHeader() {
     const router = useRouter();
-    const pathname = usePathname();
+    // const pathname = usePathname();
     const [isLoggedIn, setIsLoggedIn] = useState(false);
     const [user, setUser] = useState<{ firstName?: string; email: string } | null>(null);
     const [isScrolled, setIsScrolled] = useState(false);

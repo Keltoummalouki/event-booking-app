@@ -50,7 +50,9 @@ describe('EventsController', () => {
 
       service.create.mockResolvedValue(expectedResult);
 
-      expect(await controller.create(createEventDto, req)).toEqual(expectedResult);
+      expect(await controller.create(createEventDto, req)).toEqual(
+        expectedResult,
+      );
       expect(service.create).toHaveBeenCalledWith(createEventDto, req.user);
     });
   });
