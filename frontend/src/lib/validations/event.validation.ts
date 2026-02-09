@@ -10,13 +10,13 @@ export const eventFormSchema = z.object({
         .min(1, 'Title is required')
         .min(3, 'Title must be at least 3 characters')
         .max(200, 'Title must not exceed 200 characters'),
-    
+
     description: z
         .string()
         .min(1, 'Description is required')
         .min(10, 'Description must be at least 10 characters')
         .max(2000, 'Description must not exceed 2000 characters'),
-    
+
     date: z
         .string()
         .min(1, 'Date is required')
@@ -30,25 +30,20 @@ export const eventFormSchema = z.object({
         }, {
             message: 'Event date must be in the future or today',
         }),
-    
+
     location: z
         .string()
         .min(1, 'Location is required')
         .min(3, 'Location must be at least 3 characters')
         .max(300, 'Location must not exceed 300 characters'),
-    
+
     capacity: z
-        .number({
-            required_error: 'Capacity is required',
-            invalid_type_error: 'Capacity must be a number',
-        })
+        .number()
         .int('Capacity must be a whole number')
         .min(1, 'Capacity must be at least 1')
         .max(100000, 'Capacity seems unreasonably high'),
-    
-    status: z.enum(eventStatusValues, {
-        errorMap: () => ({ message: 'Status must be either DRAFT or PUBLISHED' }),
-    }).optional().default('DRAFT'),
+
+    status: z.enum(eventStatusValues),
 });
 
 // Type inference for form data

@@ -3,7 +3,9 @@
  * Handles automatic token injection, error interception, and retry logic
  */
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+const API_URL = (typeof window === 'undefined' && process.env.API_URL_INTERNAL)
+    ? process.env.API_URL_INTERNAL
+    : (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000');
 
 export interface ApiError {
     message: string;

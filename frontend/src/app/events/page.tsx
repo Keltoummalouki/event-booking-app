@@ -3,7 +3,9 @@ import EventCard from '@/components/dashboard/EventCard';
 import EventGrid from '@/components/dashboard/EventGrid';
 import { cookies } from 'next/headers';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+const API_URL = (typeof window === 'undefined' && process.env.API_URL_INTERNAL)
+    ? process.env.API_URL_INTERNAL
+    : (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000');
 
 /**
  * Fetch public events server-side with no caching for fresh data
