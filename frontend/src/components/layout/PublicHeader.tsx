@@ -10,7 +10,7 @@ import { isAuthenticated, getCurrentUser, logout } from '@/services/auth.service
 
 export default function PublicHeader() {
     const router = useRouter();
-    const pathname = usePathname();
+    // const pathname = usePathname();
     const [isLoggedIn, setIsLoggedIn] = useState(false);
     const [user, setUser] = useState<{ firstName?: string; email: string } | null>(null);
     const [isScrolled, setIsScrolled] = useState(false);
@@ -68,7 +68,7 @@ export default function PublicHeader() {
                         E
                     </div>
                     <span className="font-serif text-xl font-bold text-navy dark:text-white hidden sm:block">
-                        EventHub
+                        Event Booking App
                     </span>
                 </Link>
 

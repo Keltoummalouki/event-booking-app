@@ -1,4 +1,13 @@
-import { Controller, Post, Body, HttpCode, HttpStatus, Get, UseGuards, Request } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  HttpCode,
+  HttpStatus,
+  Get,
+  UseGuards,
+  Request,
+} from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
@@ -20,6 +29,6 @@ export class AuthController {
   @Roles(UserRole.ADMIN)
   @Get('admin-check')
   checkAdmin(@Request() req) {
-    return { message: "Bienvenue Admin", user: req.user };
+    return { message: 'Bienvenue Admin', user: req.user };
   }
 }

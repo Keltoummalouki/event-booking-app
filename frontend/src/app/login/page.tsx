@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { ArrowRight } from 'lucide-react';
 import { useForm } from 'react-hook-form';
@@ -201,15 +202,11 @@ export default function LoginPage() {
 
           {/* Register Link */}
           <div className="mt-8 text-center">
-            <p className="text-slate">
-              Don't have an account?{' '}
-              <motion.a
-                href="/register"
-                className="text-coral font-medium hover:underline"
-                whileHover={{ scale: 1.02 }}
-              >
-                Create one
-              </motion.a>
+            <p className="text-center text-slate dark:text-gray-400 text-sm">
+              Don&apos;t have an account?{' '}
+              <Link href="/register" className="text-coral hover:text-coral-hover font-medium transition-colors">
+                Register here
+              </Link>
             </p>
           </div>
 

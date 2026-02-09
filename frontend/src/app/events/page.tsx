@@ -1,24 +1,34 @@
 import { Event, EventsListResponse } from '@/types/event.types';
 import EventCard from '@/components/dashboard/EventCard';
 import EventGrid from '@/components/dashboard/EventGrid';
+import { cookies } from 'next/headers';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+const API_URL = (typeof window === 'undefined' && process.env.API_URL_INTERNAL)
+    ? process.env.API_URL_INTERNAL
+    : (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000');
 
 /**
  * Fetch public events server-side with no caching for fresh data
  * Falls back to /events endpoint and filters for PUBLISHED if /events/public is unavailable
  */
+
 async function getPublicEvents(): Promise<Event[]> {
     console.log('[SSR] Fetching events from:', API_URL);
+
+    const cookieStore = await cookies();
+    const token = cookieStore.get('token')?.value;
+
+    const headers: HeadersInit = {
+        'Content-Type': 'application/json',
+        ...(token && { 'Authorization': `Bearer ${token}` }),
+    };
 
     try {
         // Try the public endpoint first
         try {
             const response = await fetch(`${API_URL}/events/public`, {
                 cache: 'no-store',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                headers,
             });
 
             console.log('[SSR] /events/public response status:', response.status);
@@ -38,9 +48,7 @@ async function getPublicEvents(): Promise<Event[]> {
         try {
             const response = await fetch(`${API_URL}/events`, {
                 cache: 'no-store',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                headers,
             });
 
             console.log('[SSR] /events response status:', response.status);
@@ -50,6 +58,10 @@ async function getPublicEvents(): Promise<Event[]> {
                 console.log('[SSR] /events data:', Array.isArray(data) ? `${data.length} events` : data);
                 // Handle both { data: Event[] } and Event[] formats
                 const events = Array.isArray(data) ? data : (data.data || []);
+
+                // If we are using the fallback endpoint, we might not have backend filtering for bookings.
+                // But typically /events is admin-facing or general listing.
+                // Ideally /events/public should work. 
                 return events.filter((event: Event) => event.status === 'PUBLISHED');
             }
         } catch (error) {

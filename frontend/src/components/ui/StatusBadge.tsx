@@ -1,40 +1,48 @@
 'use client';
 
-import { EventStatus } from '@/types/event.types';
-
 interface StatusBadgeProps {
-    status: EventStatus;
+    status: string;
     variant?: 'default' | 'prominent';
     className?: string;
 }
 
-const STATUS_CONFIG: Record<EventStatus, { bg: string; text: string; label: string }> = {
-    DRAFT: {
-        bg: 'bg-slate/20',
-        text: 'text-slate',
-        label: 'Draft',
-    },
-    PUBLISHED: {
-        bg: 'bg-coral/15',
-        text: 'text-coral',
-        label: 'Published',
-    },
-    CANCELED: {
-        bg: 'bg-error/15',
-        text: 'text-error',
-        label: 'Canceled',
-    },
-};
-
 export default function StatusBadge({ status, variant = 'default', className = '' }: StatusBadgeProps) {
-    const config = STATUS_CONFIG[status];
+
+    const getStatusConfig = (status: string) => {
+        const normalizedStatus = status?.toUpperCase();
+
+        switch (normalizedStatus) {
+            // Event Statuses
+            case 'PUBLISHED':
+                return { styles: 'bg-success/10 text-success border-success/20', label: 'Published' };
+            case 'DRAFT':
+                return { styles: 'bg-slate/20 text-slate-500 border-slate-200 dark:border-slate-700', label: 'Draft' };
+
+            // Booking Statuses
+            case 'CONFIRMED':
+                return { styles: 'bg-success/10 text-success border-success/20', label: 'Confirmed' };
+            case 'PENDING':
+                return { styles: 'bg-warning/10 text-warning border-warning/20', label: 'Pending' };
+            case 'REFUSED':
+            case 'REJECTED':
+                return { styles: 'bg-error/10 text-error border-error/20', label: 'Refused' };
+            case 'CANCELED':
+            case 'CANCELLED':
+                return { styles: 'bg-slate-500/10 text-slate-500 border-slate-500/20', label: 'Canceled' };
+
+            default:
+                return { styles: 'bg-slate-100 text-slate-600 border-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700', label: status };
+        }
+    };
+
+    const config = getStatusConfig(status);
 
     if (variant === 'prominent') {
         return (
             <span
                 className={`
                     inline-flex items-center gap-1.5 px-4 py-1.5
-                    ${config.bg} ${config.text}
+                    ${config.styles}
                     text-sm font-semibold tracking-wide
                     btn-asymmetric
                     shadow-sm
@@ -51,9 +59,9 @@ export default function StatusBadge({ status, variant = 'default', className = '
         <span
             className={`
                 inline-block px-3 py-1
-                ${config.bg} ${config.text}
+                ${config.styles}
                 text-xs font-medium tracking-wide
-                rounded-full
+                rounded-full border
                 ${className}
             `}
         >

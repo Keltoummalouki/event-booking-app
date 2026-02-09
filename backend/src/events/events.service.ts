@@ -1,10 +1,15 @@
-import { Injectable, InternalServerErrorException, Logger } from '@nestjs/common';
+import {
+  Injectable,
+  InternalServerErrorException,
+  Logger,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Event, EventStatus } from './entities/event.entity';
 import { CreateEventDto } from './dto/create-event.dto';
 import { User } from '../users/entities/user.entity';
 import { NotFoundException } from '@nestjs/common';
+import { Booking } from '../bookings/entities/booking.entity';
 
 @Injectable()
 export class EventsService {
@@ -13,12 +18,14 @@ export class EventsService {
   constructor(
     @InjectRepository(Event)
     private eventsRepository: Repository<Event>,
-  ) { }
+  ) {}
 
   async create(createEventDto: CreateEventDto, jwtUser: any): Promise<Event> {
     // JWT returns { userId, email, role } but TypeORM needs { id } for relations
     const organizerId = jwtUser?.userId || jwtUser?.id;
-    this.logger.log(`Creating event: ${createEventDto.title} by user: ${organizerId}`);
+    this.logger.log(
+      `Creating event: ${createEventDto.title} by user: ${organizerId}`,
+    );
 
     try {
       const newEvent = this.eventsRepository.create({
@@ -36,7 +43,9 @@ export class EventsService {
       return saved;
     } catch (error) {
       this.logger.error(`Error creating event: ${error.message}`, error.stack);
-      throw new InternalServerErrorException(`Erreur lors de la création de l'événement: ${error.message}`);
+      throw new InternalServerErrorException(
+        `Erreur lors de la création de l'événement: ${error.message}`,
+      );
     }
   }
 
@@ -65,12 +74,35 @@ export class EventsService {
     return await this.eventsRepository.save(event);
   }
 
-  async findAllPublished(): Promise<Event[]> {
-    return await this.eventsRepository.find({
-      where: { status: EventStatus.PUBLISHED },
-      relations: ['organizer'],
-      order: { date: 'ASC' },
-    });
+  async findAllPublished(userId?: string): Promise<Event[]> {
+    this.logger.log(`findAllPublished called with userId: ${userId}`);
+
+    const query = this.eventsRepository
+      .createQueryBuilder('event')
+      .leftJoinAndSelect('event.organizer', 'organizer')
+      .where('event.status = :status', { status: EventStatus.PUBLISHED })
+      .orderBy('event.date', 'ASC');
+
+    if (userId) {
+      // Use a subquery to exclude events the user has already booked
+      // Column names are 'eventId' and 'participantId' in the 'bookings' table
+      query.andWhere((qb) => {
+        const subQuery = qb
+          .subQuery()
+          .select('b."eventId"')
+          .from(Booking, 'b')
+          .where('b."participantId" = :userId')
+          .getQuery();
+        return 'event.id NOT IN ' + subQuery;
+      });
+      query.setParameter('userId', userId);
+
+      this.logger.log(`Query with user filter applied for userId: ${userId}`);
+    }
+
+    const events = await query.getMany();
+    this.logger.log(`findAllPublished returning ${events.length} events`);
+    return events;
   }
 
   async findOne(id: string): Promise<Event> {
@@ -86,7 +118,10 @@ export class EventsService {
     return event;
   }
 
-  async update(id: string, updateEventDto: Partial<CreateEventDto>): Promise<Event> {
+  async update(
+    id: string,
+    updateEventDto: Partial<CreateEventDto>,
+  ): Promise<Event> {
     const event = await this.eventsRepository.findOne({ where: { id } });
 
     if (!event) {
@@ -113,4 +148,3 @@ export class EventsService {
     this.logger.log(`Event deleted: ${id}`);
   }
 }
-

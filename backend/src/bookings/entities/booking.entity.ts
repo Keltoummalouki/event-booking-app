@@ -1,6 +1,19 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, ManyToOne } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  ManyToOne,
+} from 'typeorm';
 import { User } from '../../users/entities/user.entity';
 import { Event } from '../../events/entities/event.entity';
+
+export enum ReservationStatus {
+  PENDING = 'PENDING',
+  CONFIRMED = 'CONFIRMED',
+  REFUSED = 'REFUSED',
+  CANCELED = 'CANCELED',
+}
 
 @Entity('bookings')
 export class Booking {
@@ -10,8 +23,12 @@ export class Booking {
   @CreateDateColumn()
   createdAt: Date;
 
-  @Column({ default: 'PENDING' }) // PENDING, CONFIRMED, CANCELED
-  status: string;
+  @Column({
+    type: 'enum',
+    enum: ReservationStatus,
+    default: ReservationStatus.PENDING,
+  })
+  status: ReservationStatus;
 
   @ManyToOne(() => User, (user) => user.bookings)
   participant: User;
