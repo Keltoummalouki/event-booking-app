@@ -1,0 +1,6 @@
+frontend/package-lock.json
+backend/.env.example
+backend/src/app.module.ts
+backend/src/scripts/seed.ts
+frontend/package-lock.json
+backend/src/scripts/seed.ts

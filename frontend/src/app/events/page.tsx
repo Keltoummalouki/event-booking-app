@@ -1,5 +1,5 @@
 import { Event, EventsListResponse } from '@/types/event.types';
-import EventCard from '@/components/dashboard/EventCard';
+import PublicEventCard from '@/components/public/PublicEventCard';
 import EventGrid from '@/components/dashboard/EventGrid';
 import { cookies } from 'next/headers';
 
@@ -174,12 +174,7 @@ export default async function PublicEventsPage() {
                         <section className="lg:w-[70%]">
                             <EventGrid>
                                 {events.map((event, index) => (
-                                    <EventCard
-                                        key={event.id}
-                                        event={event}
-                                        index={index}
-                                        isPublicView={true}
-                                    />
+                                    <PublicEventCard key={event.id} event={event} index={index} />
                                 ))}
                             </EventGrid>
                         </section>
